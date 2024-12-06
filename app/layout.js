@@ -1,9 +1,14 @@
-import { Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+// Initialize Space Grotesk with specific weights
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "Search Engine",
@@ -13,7 +18,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
+      <body className={`${spaceGrotesk.className} flex flex-col min-h-screen`}>
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
           {children}
