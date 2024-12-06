@@ -1,5 +1,6 @@
 // scripts/seedDatabase.js
 const mongoose = require("mongoose");
+const { mockDatabase } = require("./data/mockData");
 
 // Define the Search schema here directly to avoid import issues
 const searchSchema = new mongoose.Schema(
@@ -80,33 +81,7 @@ searchSchema.index(
 const Search = mongoose.model("Search", searchSchema);
 
 // Mock data
-const mockData = [
-  {
-    title: "Introduction to JavaScript Programming",
-    content:
-      "JavaScript is a versatile programming language used for web development. It allows you to create interactive and dynamic websites.",
-    category: "programming",
-    tags: ["javascript", "web development", "coding"],
-    author: "John Doe",
-    metadata: {
-      language: "en",
-      rating: 4.5,
-    },
-  },
-  {
-    title: "React.js Fundamentals",
-    content:
-      "Learn the core concepts of React.js including components, state, props, and hooks.",
-    category: "web-development",
-    tags: ["react", "javascript", "frontend"],
-    author: "Jane Smith",
-    metadata: {
-      language: "en",
-      rating: 4.8,
-    },
-  },
-  // ... rest of your mock data
-];
+const mockData = mockDatabase;
 
 async function seedDatabase() {
   try {
