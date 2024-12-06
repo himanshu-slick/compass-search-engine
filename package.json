@@ -10,13 +10,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.0",
-    "lucide-react": "^0.468.0",
-    "mongoose": "^8.8.3",
-    "next": "15.0.3",
-    "next-auth": "^4.24.10",
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106"
+    "@headlessui/react": "^1.7.17",
+    "lucide-react": "^0.294.0",
+    "mongoose": "^8.0.2",
+    "next": "^14.2.20",
+    "next-auth": "^4.24.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "eslint": "^8",
