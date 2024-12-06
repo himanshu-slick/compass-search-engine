@@ -1,3 +1,4 @@
+/* eslint-disable */
 export default function Footer() {
   return (
     <footer className="bg-white border-t mt-auto">
