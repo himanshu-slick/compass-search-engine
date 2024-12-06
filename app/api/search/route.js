@@ -24,10 +24,11 @@ const Search =
     )
   );
 
-export async function GET(request, { params }) {
+export const dynamic = "force-dynamic"; // This is important!
+
+export async function GET(req) {
   try {
-    // Get the search parameters using searchParams() method
-    const searchParams = new URL(request.url).searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get("q") || "";
     const category = searchParams.get("category");
     const page = parseInt(searchParams.get("page")) || 1;
@@ -51,17 +52,14 @@ export async function GET(request, { params }) {
       searchCriteria.category = category;
     }
 
-    // Execute search
     const results = await Search.find(searchCriteria)
       .sort({ "metadata.rating": -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    // Get total count for pagination
     const total = await Search.countDocuments(searchCriteria);
 
-    // Return response
     return NextResponse.json({
       results,
       pagination: {
