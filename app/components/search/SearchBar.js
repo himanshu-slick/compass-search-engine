@@ -1,21 +1,22 @@
 // app/components/search/SearchBar.js
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search as SearchIcon } from "lucide-react";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
 
 export default function SearchBar({ onSearch }) {
-  const [query, setQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
 
-  const debouncedSearch = useDebounce((value) => {
-    onSearch(String(value));
-  }, 300);
+  useEffect(() => {
+    if (debouncedSearchTerm !== undefined) {
+      onSearch(debouncedSearchTerm);
+    }
+  }, [debouncedSearchTerm, onSearch]);
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setQuery(value);
-    debouncedSearch(value);
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   return (
@@ -23,8 +24,8 @@ export default function SearchBar({ onSearch }) {
       <div className="relative">
         <input
           type="text"
-          value={query}
-          onChange={handleSearch}
+          value={searchTerm}
+          onChange={handleChange}
           placeholder="Explore your world..."
           className="w-full px-4 py-4 pl-12 text-lg border-2 border-indigo-300 rounded-full 
                    focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 
