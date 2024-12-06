@@ -11,39 +11,51 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   const handleSearch = useCallback(async (query) => {
+    // Clear previous errors and results when starting a new search
+    setError(null);
+
+    // Don't search if query is empty
     if (!query?.trim()) {
       setResults([]);
-      setError(null);
       return;
     }
 
     try {
       setLoading(true);
-      setError(null);
-
       const response = await fetch(
         `/api/search?q=${encodeURIComponent(query)}`
       );
-      if (!response.ok) throw new Error("Search failed");
+
+      if (!response.ok) {
+        throw new Error("Search failed");
+      }
 
       const data = await response.json();
-      setResults(data.results);
 
+      // Only set error if no results found
       if (data.results.length === 0) {
         setError("No results found");
+        setResults([]);
+      } else {
+        // Clear error and set results if we found something
+        setError(null);
+        setResults(data.results);
       }
     } catch (error) {
       console.error("Search failed:", error);
       setError("An error occurred while searching");
+      setResults([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const handleFilterChange = (filters) => {
-    // Filter the results based on selected filters
+    // Clear error when applying filters
+    setError(null);
+
+    // Your existing filter logic here
     let filteredResults = results.filter((item) => {
-      // Category filter
       if (
         filters.category &&
         filters.category !== "all" &&
@@ -52,7 +64,6 @@ export default function Home() {
         return false;
       }
 
-      // Author filter
       if (
         filters.author &&
         filters.author !== "all" &&
@@ -61,7 +72,6 @@ export default function Home() {
         return false;
       }
 
-      // Rating filter
       if (filters.rating && filters.rating !== "all") {
         const minRating = parseFloat(filters.rating);
         if (item.metadata.rating < minRating) {
@@ -72,7 +82,7 @@ export default function Home() {
       return true;
     });
 
-    // Apply sorting
+    // Sort results if specified
     if (filters.sortBy) {
       filteredResults = [...filteredResults].sort((a, b) => {
         switch (filters.sortBy) {
@@ -90,36 +100,35 @@ export default function Home() {
       });
     }
 
+    // Set error if filters result in no matches
+    if (filteredResults.length === 0) {
+      setError("No results match the selected filters");
+    }
+
     setResults(filteredResults);
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-violet-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12">
-        <div className="text-center space-y-2 mb-8">
-          <h1 className="text-5xl md:text-6xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
-            Compass
-          </h1>
-          <p className="text-xl md:text-2xl font-medium text-indigo-400 dark:text-indigo-300">
-            Navigate Your Knowledge
-          </p>
-        </div>
+    <main className="min-h-screen bg-gradient-to-b from-violet-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-5xl font-bold text-center mb-2 text-indigo-600">
+          Compass
+        </h1>
+        <p className="text-center mb-8 text-indigo-400">
+          Navigate Your Knowledge
+        </p>
 
         <SearchBar onSearch={handleSearch} />
         <SearchFilters onFilterChange={handleFilterChange} />
 
-        {error && (
-          <div className="text-center text-rose-600 dark:text-rose-400 my-4 font-medium">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-center text-rose-600 my-4">{error}</div>}
 
         {loading ? (
-          <div className="text-center text-indigo-600 dark:text-indigo-400">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400 mx-auto"></div>
+          <div className="text-center text-indigo-600">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
           </div>
         ) : (
-          <SearchResults results={results} />
+          !error && <SearchResults results={results} />
         )}
       </div>
     </main>
