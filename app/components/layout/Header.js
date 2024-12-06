@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 import DarkModeToggle from "../ui/DarkModeToggle";
 
 export default function Header() {
