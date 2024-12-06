@@ -1,50 +1,29 @@
-// app/api/search/route.js
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/db/mongodb";
-import mongoose from "mongoose";
+import Search from "@/app/models/Search";
 
-// Define Search Model
-const Search =
-  mongoose.models.Search ||
-  mongoose.model(
-    "Search",
-    new mongoose.Schema(
-      {
-        title: String,
-        content: String,
-        category: String,
-        tags: [String],
-        author: String,
-        metadata: {
-          language: String,
-          rating: Number,
-        },
-      },
-      { timestamps: true }
-    )
-  );
-
-export const dynamic = "force-dynamic"; // This is important!
+export const dynamic = "force-dynamic";
 
 export async function GET(req) {
   try {
+    // Connect to MongoDB
+    await connectDB();
+
     const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get("q") || "";
     const category = searchParams.get("category");
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
 
-    // Connect to MongoDB
-    await connectDB();
-
-    // Build search criteria
+    // Build search criteria using regex instead of $text
     let searchCriteria = {};
 
     if (query) {
+      const searchRegex = new RegExp(query, "i");
       searchCriteria.$or = [
-        { title: { $regex: query, $options: "i" } },
-        { content: { $regex: query, $options: "i" } },
-        { tags: { $in: [new RegExp(query, "i")] } },
+        { title: searchRegex },
+        { content: searchRegex },
+        { tags: searchRegex },
       ];
     }
 
@@ -52,6 +31,7 @@ export async function GET(req) {
       searchCriteria.category = category;
     }
 
+    // Execute search
     const results = await Search.find(searchCriteria)
       .sort({ "metadata.rating": -1 })
       .skip((page - 1) * limit)

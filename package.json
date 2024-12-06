@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "seed": "node scripts/seedDatabase.js",
+    "seed:prod": "NODE_ENV=production node scripts/seedDatabase.js",
     "test": "jest"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
     "lucide-react": "^0.294.0",
     "mongoose": "^8.0.2",
     "next": "^14.2.20",

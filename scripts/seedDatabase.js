@@ -1,110 +1,95 @@
-// scripts/seedDatabase.js
-const mongoose = require("mongoose");
-const { mockDatabase } = require("./data/mockData");
+import mongoose from "mongoose";
+import { mockDatabase } from "./data/mockData.js";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-// Define the Search schema here directly to avoid import issues
-const searchSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: [true, "Title is required"],
-      trim: true,
-      index: true,
-    },
-    content: {
-      type: String,
-      required: [true, "Content is required"],
-      trim: true,
-      index: true,
-    },
-    category: {
-      type: String,
-      required: [true, "Category is required"],
-      enum: {
-        values: [
-          "programming",
-          "technology",
-          "database",
-          "data-science",
-          "web-development",
-          "artificial-intelligence",
-        ],
-        message: "{VALUE} is not a supported category",
-      },
-      index: true,
-    },
-    tags: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-    author: {
-      type: String,
-      required: [true, "Author is required"],
-      trim: true,
-    },
-    metadata: {
-      language: {
-        type: String,
-        default: "en",
-      },
-      rating: {
-        type: Number,
-        min: 0,
-        max: 5,
-        default: 0,
-      },
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-searchSchema.index(
-  {
-    title: "text",
-    content: "text",
-    tags: "text",
-  },
-  {
-    weights: {
-      title: 10,
-      content: 5,
-      tags: 3,
-    },
-  }
-);
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.local";
+dotenv.config({ path: join(dirname(__dirname), envFile) });
 
-// Create the Search model
-const Search = mongoose.model("Search", searchSchema);
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// Mock data
-const mockData = mockDatabase;
+if (!MONGODB_URI) {
+  console.error("MONGODB_URI is not defined in environment variables");
+  process.exit(1);
+}
 
 async function seedDatabase() {
   try {
     console.log("Connecting to MongoDB...");
-    await mongoose.connect("mongodb://localhost:27017/search-engine");
-    console.log("Connected successfully!");
+    console.log(`Using environment: ${process.env.NODE_ENV || "development"}`);
+
+    await mongoose.connect(MONGODB_URI, {
+      maxPoolSize: 10,
+      minPoolSize: 5,
+      maxIdleTimeMS: 60000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
+
+    // Create the schema with indexes
+    const searchSchema = new mongoose.Schema(
+      {
+        title: { type: String, required: true, index: true },
+        content: { type: String, required: true, index: true },
+        category: { type: String, required: true, index: true },
+        tags: [{ type: String, index: true }],
+        author: String,
+        metadata: {
+          language: String,
+          rating: Number,
+        },
+      },
+      { timestamps: true }
+    );
+
+    // Create text index
+    searchSchema.index(
+      {
+        title: "text",
+        content: "text",
+        tags: "text",
+      },
+      {
+        weights: {
+          title: 10,
+          content: 5,
+          tags: 3,
+        },
+        name: "SearchIndex",
+      }
+    );
+
+    // Remove existing model if it exists to prevent OverwriteModelError
+    mongoose.deleteModel(/.*/, "");
+
+    const Search = mongoose.model("Search", searchSchema);
 
     // Clear existing data
     console.log("Clearing existing data...");
     await Search.deleteMany({});
-    console.log("Existing data cleared!");
 
     // Insert mock data
     console.log("Inserting mock data...");
-    const result = await Search.insertMany(mockData);
+    const result = await Search.insertMany(mockDatabase);
+
+    // Ensure indexes are created
+    await Search.createIndexes();
+
     console.log(`Successfully inserted ${result.length} documents`);
+    console.log("Indexes created successfully");
   } catch (error) {
     console.error("Error seeding database:", error);
+    process.exit(1);
   } finally {
-    console.log("Database connection closed");
     await mongoose.disconnect();
+    console.log("Database connection closed");
+    process.exit(0);
   }
 }
 
-// Run the seed function
 seedDatabase();
