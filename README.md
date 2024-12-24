@@ -170,6 +170,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Lucide Icons
 
 ## Contact
-
-Your Name - @yourtwitter
+Email : himanshu.slick@gmail.com
 Project Link: https://github.com/yourusername/compass-search
